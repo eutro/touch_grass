@@ -1,0 +1,7 @@
+/dist
+touch_grass.config.json
+*~
+node_modules
+.log
+.babelrc
+log.txt
