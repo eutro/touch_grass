@@ -19,6 +19,10 @@ API](https://developers.google.com/maps/documentation/javascript/places).
 
 Install the dependencies:
 
+```shell
+npm install
+```
+
 Build the client js and css files:
 
 ```shell
