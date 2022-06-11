@@ -27,11 +27,9 @@ const Grass = ({coords, grass}) => {
   }
 
   const computeDistance = () => {
-    const srcLoc = coords;
-    const destLoc = location;
-    if (!srcLoc || !destLoc) return 0;
-    const {longitude: lon1, latitude: lat1} = srcLoc;
-    const {longitude: lon2, latitude: lat2} = destLoc;
+    if (!coords || !location) return 0;
+    const {longitude: lon1, latitude: lat1} = coords;
+    const {lng: lon2, lat: lat2} = location;
 
     return getDistance(lat1, lon1, lat2, lon2);
   }
@@ -73,9 +71,8 @@ const GrassList = ({coords, grass: { parks } }) => {
 }
 
 const Root = () => {
-  const [coords, setCoords] = useState({});
-  const [error, setError] = useState("");
-  const [grass, setGrass] = useState({});
+  const [error, setError] = useState(null);
+  const [{coords, grass}, setGrass] = useState({coords: null, grass: null});
   const [loading, setLoading] = useState(false);
 
   const locateGrass = () => {
@@ -85,9 +82,6 @@ const Root = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { longitude, latitude } = position.coords;
-
-          setCoords(position.coords)
-
           fetch(`grass.json?longitude=${longitude}&latitude=${latitude}`)
             .then(resp => {
               if (resp.status !== 200) {
@@ -101,7 +95,10 @@ const Root = () => {
             .then(grass => {
               setLoading(false);
               setError(null);
-              setGrass(grass);
+              setGrass({
+                grass: grass,
+                coords: position.coords,
+              });
             })
             .catch(err => {
               setLoading(false);
