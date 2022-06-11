@@ -71,6 +71,9 @@ let server = http.createServer(async function(req, res) {
       res.writeHead(301, { 'Location': `http://${req.headers.host}/touch_grass/` });
       res.end();
     } else {
+      if (path.startsWith("/touch_grass") {
+        path = path.substr("/touch_grass".length);
+      }
       let endpoint = endpoints.get(path);
       if (endpoint) {
         await endpoint(res, params);
