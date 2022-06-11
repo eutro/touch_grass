@@ -28,7 +28,10 @@ async function grassLoader(res, params) {
   let sparams = new URLSearchParams(params);
   let longitude = sparams.get("longitude");
   let latitude = sparams.get("latitude");
-  if (!longitude || !latitude) {
+  if (!longitude
+      || !latitude
+      || !isFinite(longitude)
+      || !isFinite(latitude)) {
     res.writeHead(400, {"Content-Type": "text/plain"});
     res.write("400 Bad Request");
     res.end();
