@@ -31,7 +31,7 @@ const Grass = ({coords, grass}) => {
     const destLoc = location;
     if (!srcLoc || !destLoc) return 0;
     const {longitude: lon1, latitude: lat1} = srcLoc;
-    const {longitude: lat2, latitude: lon2} = srcLoc;
+    const {longitude: lon2, latitude: lat2} = destLoc;
 
     return getDistance(lat1, lon1, lat2, lon2);
   }
