@@ -1,6 +1,6 @@
 # Touch Grass
 
-This is the source code for [[https://eutro.dev/touch_grass]], server and client.
+This is the source code for [Touch Grass](https://eutro.dev/touch_grass), server and client.
 
 # Running
 ## Setup
