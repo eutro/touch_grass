@@ -63,9 +63,9 @@ class GrassList extends React.Component {
       );
     }
     return (
-      <div>
-        <h2 className="p-2 text-2xl">Grass near you</h2>
-        <div className="mb-2 grid sm:grid-cols-1 lg:grid-cols-2 gap-1">
+      <div className="my-2">
+        <h2 className="pb-2 text-2xl">Grass near you</h2>
+        <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-1">
           {this.props.grass.parks.map((grass, i) =>
             <Grass key={i}
                    coords={this.props.coords}
@@ -101,7 +101,7 @@ class Root extends React.Component {
               ...this.state,
               coords: position.coords,
             });
-            fetch(`/touch_grass/grass.json?longitude=${longitude}&latitude=${latitude}`)
+            fetch(`grass.json?longitude=${longitude}&latitude=${latitude}`)
               .then(resp => {
                 if (resp.status !== 200) {
                   return resp.text().then(text => {
@@ -128,11 +128,19 @@ class Root extends React.Component {
               });
           },
           (err) => {
-            this.setState({
-              ...this.state,
-              loading: false,
-              error: err.message,
-            });
+            if (err.code === 1) { // PERMISSION_DENIED
+              this.setState({
+                ...this.state,
+                loading: false,
+                error: true,
+              });
+            } else {
+              this.setState({
+                ...this.state,
+                loading: false,
+                error: err.message,
+              });
+            }
           }
         );
       } else {
@@ -147,7 +155,29 @@ class Root extends React.Component {
         <h1 className="p-2 text-3xl">Touch grass</h1>
         {this.state.grass && <GrassList coords={this.state.coords} grass={this.state.grass} />}
         {this.state.error &&
-         <p className="p-2 text-red-600">Grass location failed: {this.state.error}</p>}
+         (this.state.error === true ?
+          (<div className="my-2 lg:w-1/2 md:w-2/3 mx-auto text-left">
+             <p className="text-lg text-red-600">
+               Grass location failed: You denied geolocation
+             </p>
+             <p>
+               This may come as a huge shock to you, but I do, in fact,
+               need to know your location in order to tell you where <b>nearby</b> grass is.
+             </p>
+             <p>
+               I don't store your location, but if you don't trust me,
+               you can take a look at
+               the <a href="https://github.com/eutro/touch_grass"
+                      className="text-blue-600 hover:text-blue-800">
+                     source code
+                   </a> and/or
+               run this yourself.
+             </p>
+             <p>
+               You might have to refresh the page to try again.
+             </p>
+           </div>) :
+          (<p className="p-2 text-red-600">Grass location failed: {this.state.error}</p>))}
         <button className={(this.state.loading ? "cursor-wait animate-pulse bg-blue-700" : "bg-blue-700 hover:bg-blue-800")
                            + " p-2 text-white rounded-full w-full"}
                 onClick={this.state.loading ? null : locateGrass}>
