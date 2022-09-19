@@ -82,7 +82,13 @@ const Root = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { longitude, latitude } = position.coords;
-          fetch(`grass.json?longitude=${longitude}&latitude=${latitude}`)
+          fetch("grass.json", {
+            method: "post",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ longitude, latitude }),
+          })
             .then(resp => {
               if (resp.status !== 200) {
                 return resp.text().then(text => {
