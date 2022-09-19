@@ -1,12 +1,51 @@
 const axios = require('axios');
 const http = require('http');
 const fs = require('fs');
+const express = require('express');
+const bodyParser = require('body-parser');
 
-let isDev = !!process.env.TOUCH_GRASS_DEV;
-let cfg = JSON.parse(fs.readFileSync("touch_grass.config.json"))
-let port = cfg.port;
-let placesKey = cfg.apiKey;
-let placesRoot = "https://maps.googleapis.com/maps/api/place";
+const isDev = !!process.env.TOUCH_GRASS_DEV;
+const cfg = JSON.parse(fs.readFileSync("touch_grass.config.json"))
+const port = cfg.port;
+const placesKey = cfg.apiKey;
+const placesRoot = "https://maps.googleapis.com/maps/api/place";
+
+const app = express();
+
+app.get(/(\/touch_grass)?\/main.css$/, fileLoader("dist/main.css", "text/css"));
+app.get(/(\/touch_grass)?\/touch_grass_2022-09-19.js$/, fileLoader("dist/bundle.js", "text/javascript"));
+app.post(/(\/touch_grass)?\/grass.json$/, bodyParser.json(), errorHandling(grassLoader));
+app.get(/(\/touch_grass)?\/(index.html)?$/, fileLoader("client/index.html", "text/html"));
+app.get(/.*/, (req, res) => res.status(404).send("Not Found"));
+
+app.get("/touch_grass", (req, res) => {
+  res.writeHead(301, { 'Location': `http://${req.headers.host}/touch_grass/` });
+  res.end();
+})
+
+app.use((err, req, res, next) => {
+  console.error(err.stack)
+  res.status(500).send("Internal Server Error")
+})
+
+console.log(
+  isDev
+    ? "Running in development mode, files will be synchronously re-read for each request."
+    : "Running in production mode, files will be stored in memory."
+)
+app.listen(port, () => {
+  console.log(`Listening on port: ${port}`);
+});
+
+function errorHandling(f) {
+  return async (req, res, next) => {
+    try {
+      await f(req, res, next);
+    } catch (e) {
+      next(e);
+    }
+  }
+}
 
 function fileLoader(path, mime) {
   let thunk;
@@ -17,17 +56,15 @@ function fileLoader(path, mime) {
     const contents = fs.readFileSync(path);
     thunk = () => contents;
   }
-  return async (res, params) => {
+  return (req, res) => {
     res.writeHead(200, {"Content-Type": mime});
     res.write(thunk());
     res.end();
   };
 }
 
-async function grassLoader(res, params) {
-  let sparams = new URLSearchParams(params);
-  let longitude = sparams.get("longitude");
-  let latitude = sparams.get("latitude");
+async function grassLoader(req, res, next) {
+  const { longitude, latitude } = req.body;
   if (!longitude
       || !latitude
       || !isFinite(longitude)
@@ -36,7 +73,7 @@ async function grassLoader(res, params) {
     res.write("400 Bad Request");
     res.end();
   } else {
-    let parks = await getParks(longitude, latitude);
+    const parks = await getParks(longitude, latitude);
     if (parks.status === 200) {
       if (parks.data.status === "ZERO_RESULTS" || parks.data.status === "OK") {
         res.writeHead(200, {"Content-Type": "text/json"});
@@ -54,50 +91,7 @@ async function grassLoader(res, params) {
   }
 }
 
-const index = fileLoader("client/index.html", "text/html");
-const endpoints = new Map([
-  ["", index], ["/", index], ["/index.html", index],
-  ["/main.css", fileLoader("dist/main.css", "text/css")],
-  ["/index.js", fileLoader("dist/bundle.js", "text/javascript")],
-  ["/grass.json", grassLoader],
-]);
-
 async function getParks(longitude, latitude) {
   let url = `${placesRoot}/nearbysearch/json?location=${latitude}%2C${longitude}&rankby=distance&type=park&key=${placesKey}`;
   return await axios.get(url);
 }
-
-let server = http.createServer(async function(req, res) {
-  try {
-    let [path, params] = req.url.split("?", 2);
-    if (path === "/touch_grass") {
-      res.writeHead(301, { 'Location': `http://${req.headers.host}/touch_grass/` });
-      res.end();
-    } else {
-      if (path.startsWith("/touch_grass")) {
-        path = path.substr("/touch_grass".length);
-      }
-      let endpoint = endpoints.get(path);
-      if (endpoint) {
-        await endpoint(res, params);
-      } else {
-        res.writeHead(404, {"Content-Type": "text/plain"});
-        res.write("404 Not Found");
-        res.end();
-      }
-    }
-  } catch(e) {
-    res.writeHead(504, {"Content-Type": "text/plain"});
-    res.write("504 Internal Server Error");
-    res.end();
-    console.error(e);
-  }
-});
-
-console.log(
-  isDev
-    ? "Running in development mode, files will be synchronously re-read for each request."
-    : "Running in production mode, files will be stored in memory."
-)
-server.listen(port);
-console.log(`Listening on port: ${port}`);
