@@ -12,16 +12,16 @@ const placesRoot = "https://maps.googleapis.com/maps/api/place";
 
 const app = express();
 
+app.get("/touch_grass$", (req, res) => {
+  res.writeHead(301, { 'Location': `http://${req.headers.host}/touch_grass/` });
+  res.end();
+})
+
 app.get(/(\/touch_grass)?\/main.css$/, fileLoader("dist/main.css", "text/css"));
 app.get(/(\/touch_grass)?\/touch_grass_2022-09-19.js$/, fileLoader("dist/bundle.js", "text/javascript"));
 app.post(/(\/touch_grass)?\/grass.json$/, bodyParser.json(), errorHandling(grassLoader));
 app.get(/(\/touch_grass)?\/(index.html)?$/, fileLoader("client/index.html", "text/html"));
 app.get(/.*/, (req, res) => res.status(404).send("Not Found"));
-
-app.get("/touch_grass", (req, res) => {
-  res.writeHead(301, { 'Location': `http://${req.headers.host}/touch_grass/` });
-  res.end();
-})
 
 app.use((err, req, res, next) => {
   console.error(err.stack)
