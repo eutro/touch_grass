@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Web app that guides you to the nearest grass for you to touch.",
   "main": "server/index.js",
+  "repository": "https://github.com/eutro/touch_grass",
   "scripts": {
     "start": "node ./server/index.js",
     "build": "webpack --node-env production && tailwindcss -m -i ./client/main.css -o ./dist/main.css",
