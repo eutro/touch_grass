@@ -18,7 +18,7 @@ app.get("/touch_grass$", (req, res) => {
 })
 
 app.get(/(\/touch_grass)?\/main.css$/, fileLoader("dist/main.css", "text/css"));
-app.get(/(\/touch_grass)?\/touch_grass_2022-09-19.js$/, fileLoader("dist/bundle.js", "text/javascript"));
+app.get(/(\/touch_grass)?\/touch_grass_2022-10-06.js$/, fileLoader("dist/bundle.js", "text/javascript"));
 app.post(/(\/touch_grass)?\/grass.json$/, bodyParser.json(), errorHandling(grassLoader));
 app.get(/(\/touch_grass)?\/(index.html)?$/, fileLoader("client/index.html", "text/html"));
 app.get(/.*/, (req, res) => res.status(404).send("Not Found"));
