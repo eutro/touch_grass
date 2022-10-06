@@ -19,11 +19,16 @@ function getDistance(lat1, lon1, lat2, lon2) {
 }
 
 const Grass = ({coords, grass}) => {
-  const { name, plus_code, geometry: { location } } = grass;
+  const { name, place_id, geometry: { location } } = grass;
 
   const generateLink = () =>  {
-    const plus = plus_code ? "+" + plus_code.compound_code : "";
-    return `https://www.google.com/maps/search/${name}${plus}`;
+    // see https://developers.google.com/maps/documentation/urls/get-started
+    const {lng, lat} = location;
+    return "https://www.google.com/maps/search/?" + new URLSearchParams({
+      api: 1,
+      query: name,
+      query_place_id: place_id,
+    });
   }
 
   const computeDistance = () => {
@@ -36,9 +41,9 @@ const Grass = ({coords, grass}) => {
 
   return (
     <a className="p-2 bg-green-500 hover:bg-green-600 rounded-lg w-full"
+       title={`${name} on Google Maps`}
        tabIndex="1"
-       href={generateLink()}
-       target="_blank">
+       href={generateLink()}>
       <div className="flex flex-row">
         <span className="text-left grow">{name}</span>
         <span className="text-right basis-1/4">({computeDistance().toFixed(0)}m)</span>
