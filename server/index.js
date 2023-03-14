@@ -127,11 +127,14 @@ function unplural(what) {
 }
 
 async function getNearby(longitude, latitude, what) {
-  let gmapType = "park";
-  what = unplural(what);
-  if (placeTypes.has(what)) gmapType = what;
-  else if (what === "vet") gmapType = "veterinary_care";
-  else return false;
+  let gmapType;
+  if (what === "grass") gmapType = "park";
+  else {
+    what = unplural(what);
+    if (placeTypes.has(what)) gmapType = what;
+    else if (what === "vet") gmapType = "veterinary_care";
+    else return false;
+  }
   let url = `${placesRoot}/nearbysearch/json?location=`
       + `${latitude}%2C${longitude}&rankby=distance&type=${gmapType}&key=${placesKey}`;
   return await axios.get(url);
